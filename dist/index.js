@@ -42712,41 +42712,41 @@ const octokit = github.getOctokit(githubToken);
 const prNumber = github.context.payload.pull_request.number;
 const repo = github.context.repo;
 
-// Updated regex to capture any ClickUp ID inside square brackets
-const match = prTitle.match(/\[([A-Za-z0-9]+)\]/);
-if (!match) {
+// Updated regex to capture multiple ClickUp IDs inside square brackets
+const matches = [...prTitle.matchAll(/\[([A-Za-z0-9]+)\]/g)];
+if (matches.length === 0) {
   console.log("No ClickUp ID found in PR title. Skipping...");
   return;
 }
 
-// Extract matched ClickUp ID
-const clickupId = match[1];
-console.log(`Extracted ClickUp ID: ${clickupId}`);
+// Extract all matched ClickUp IDs
+const clickupIds = matches.map(match => match[1]);
+console.log(`Extracted ClickUp IDs: ${clickupIds.join(", ")}`);
 
 async function updateClickupTaskStatus() {
-  try {
+  for (const clickupId of clickupIds) {
+    try {
+      const response = await axios.put(
+        `https://api.clickup.com/api/v2/task/${clickupId}`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: clickupApiKey,
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-    const response = await axios.put(
-      `https://api.clickup.com/api/v2/task/${clickupId}`,
-      { status: newStatus },
-      {
-        headers: {
-          Authorization: clickupApiKey,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log(`Successfully updated ClickUp Task ${clickupId} to '${newStatus}'`);
-    console.log(response.data);
-  } catch (error) {
-    core.setFailed(`Error updating ClickUp Task: ${error.message}`);
+      console.log(`Successfully updated ClickUp Task ${clickupId} to '${newStatus}'`);
+      console.log(response.data);
+    } catch (error) {
+      core.setFailed(`Error updating ClickUp Task ${clickupId}: ${error.message}`);
+    }
   }
 }
 
 async function updatePullRequestDescription() {
   try {
-
     // Get the current PR description
     const { data: pr } = await octokit.rest.pulls.get({
       owner: repo.owner,
@@ -42756,28 +42756,33 @@ async function updatePullRequestDescription() {
 
     const currentDescription = pr.body || "";
 
-    // Fetch ClickUp Task details
-    const taskResponse = await axios.get(
-      `https://api.clickup.com/api/v2/task/${clickupId}`,
-      {
-        headers: {
-          Authorization: clickupApiKey,
-        },
+    let clickupSection = "### 📝 Linked ClickUp Tasks\n";
+
+    for (const clickupId of clickupIds) {
+      // Fetch ClickUp Task details
+      const taskResponse = await axios.get(
+        `https://api.clickup.com/api/v2/task/${clickupId}`,
+        {
+          headers: {
+            Authorization: clickupApiKey,
+          },
+        }
+      );
+
+      const taskName = taskResponse.data.name;
+      const clickupTaskUrl = `https://app.clickup.com/t/${clickupId}`;
+
+      console.log(`ClickUp Task Name: ${taskName}`);
+      console.log(`ClickUp Task URL: ${clickupTaskUrl}`);
+
+      // Append each ClickUp Task to the section
+      if (!currentDescription.includes(clickupTaskUrl)) {
+        clickupSection += `- [${taskName}](${clickupTaskUrl})\n`;
       }
-    );
+    }
 
-    const taskName = taskResponse.data.name;
-    const clickupTaskUrl = `https://app.clickup.com/t/${clickupId}`;
-
-    console.log(`ClickUp Task Name: ${taskName}`);
-    console.log(`ClickUp Task URL: ${clickupTaskUrl}`);
-
-    // Construct the new section
-    const clickupSection = `### 📝 Linked ClickUp Task\n[${taskName}](${clickupTaskUrl})`;
-
-    // Check if ClickUp section already exists
-    if (currentDescription.includes(clickupTaskUrl)) {
-      console.log("ClickUp Task already linked in PR description. Skipping update.");
+    if (!clickupSection.includes("- [")) {
+      console.log("All ClickUp tasks are already linked in PR description. Skipping update.");
       return;
     }
 
