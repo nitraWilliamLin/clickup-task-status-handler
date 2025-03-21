@@ -42710,14 +42710,15 @@ async function run() {
     const prTitle = github.context.payload.pull_request.title;
     console.log(`PR Title: ${prTitle}`);
 
-    // 更新 ClickUp ID 的解析規則
-    const match = prTitle.match(/\[CU-\d+\]/);
+    // Updated regex to capture any ClickUp ID inside square brackets
+    const match = prTitle.match(/\[([A-Za-z0-9]+)\]/);
     if (!match) {
       console.log("No ClickUp ID found in PR title. Skipping...");
       return;
     }
 
-    const clickupId = match[0].replace(/\[|\]/g, "").replace("CU-", "");
+    // Extract matched ClickUp ID
+    const clickupId = match[1];
     console.log(`Extracted ClickUp ID: ${clickupId}`);
 
     const response = await axios.put(
