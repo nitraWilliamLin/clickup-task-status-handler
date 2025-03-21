@@ -15,6 +15,10 @@ inputs:
   new_clickup_status:
     description: "New status for the ClickUp task"
     required: true
+  should_update_pr_description:
+    description: "Whether to update the PR description"
+    required: false
+    default: "false"
 
 runs:
   using: "node16"

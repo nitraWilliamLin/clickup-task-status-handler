@@ -42704,6 +42704,7 @@ const axios = __nccwpck_require__(8757);
 const githubToken = core.getInput("github_token");
 const clickupApiKey = core.getInput("clickup_api_key");
 const newStatus = core.getInput("new_clickup_status");
+const shouldUpdateDescription = core.getInput("should_update_pr_description");
 
 const prTitle = github.context.payload.pull_request.title;
 console.log(`PR Title: ${prTitle}`);
@@ -42805,7 +42806,9 @@ async function updatePullRequestDescription() {
 
 async function run() {
   await updateClickupTaskStatus();
-  await updatePullRequestDescription();
+  if (shouldUpdateDescription === "yes") {
+    await updatePullRequestDescription();
+  }
 }
 
 run();
