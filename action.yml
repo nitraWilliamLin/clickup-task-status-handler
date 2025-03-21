@@ -1,0 +1,21 @@
+name: "ClickUp Task Updater"
+description: "Extract ClickUp ID from PR title and update task status"
+author: "William Lin"
+branding:
+  icon: "check-circle"
+  color: "blue"
+
+inputs:
+  github_token:
+    description: "GitHub Token"
+    required: true
+  clickup_api_key:
+    description: "ClickUp API Key"
+    required: true
+  new_clickup_status:
+    description: "New status for the ClickUp task"
+    required: true
+
+runs:
+  using: "node16"
+  main: "dist/index.js"

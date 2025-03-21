@@ -1,0 +1,17 @@
+{
+  "name": "clickup-task-update",
+  "version": "1.0.0",
+  "description": "A GitHub Action to update ClickUp task status from PR title",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "ncc build src/index.js -o dist"
+  },
+  "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "@vercel/ncc": "^0.36.1"
+  }
+}
