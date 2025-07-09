@@ -44,7 +44,7 @@ async function updateClickupTaskStatus() {
       console.log(
         `Successfully updated ClickUp Task ${clickupId} to '${newStatus}'`
       );
-      console.log(response.data);
+      // console.log(response.data);
     } catch (error) {
       core.setFailed(
         `Error updating ClickUp Task ${clickupId}: ${error.message}`
