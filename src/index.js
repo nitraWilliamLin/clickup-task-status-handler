@@ -10,7 +10,6 @@ const shouldAddTaskComment = core.getInput("should_add_task_comment");
 
 const prTitle = github.context.payload.pull_request.title;
 console.log(`PR Title: ${prTitle}`);
-console.log(`shouldAddTaskComment: ${shouldAddTaskComment}`);
 
 const octokit = github.getOctokit(githubToken);
 const prNumber = github.context.payload.pull_request.number;

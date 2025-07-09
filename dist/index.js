@@ -42705,6 +42705,7 @@ const githubToken = core.getInput("github_token");
 const clickupApiKey = core.getInput("clickup_api_key");
 const newStatus = core.getInput("new_clickup_status");
 const shouldUpdateDescription = core.getInput("should_update_pr_description");
+const shouldAddTaskComment = core.getInput("should_add_task_comment");
 
 const prTitle = github.context.payload.pull_request.title;
 console.log(`PR Title: ${prTitle}`);
@@ -42721,7 +42722,7 @@ if (matches.length === 0) {
 }
 
 // Extract all matched ClickUp IDs
-const clickupIds = matches.map(match => match[1]);
+const clickupIds = matches.map((match) => match[1]);
 console.log(`Extracted ClickUp IDs: ${clickupIds.join(", ")}`);
 
 async function updateClickupTaskStatus() {
@@ -42738,10 +42739,14 @@ async function updateClickupTaskStatus() {
         }
       );
 
-      console.log(`Successfully updated ClickUp Task ${clickupId} to '${newStatus}'`);
-      console.log(response.data);
+      console.log(
+        `Successfully updated ClickUp Task ${clickupId} to '${newStatus}'`
+      );
+      // console.log(response.data);
     } catch (error) {
-      core.setFailed(`Error updating ClickUp Task ${clickupId}: ${error.message}`);
+      core.setFailed(
+        `Error updating ClickUp Task ${clickupId}: ${error.message}`
+      );
     }
   }
 }
@@ -42783,7 +42788,9 @@ async function updatePullRequestDescription() {
     }
 
     if (!clickupSection.includes("- [")) {
-      console.log("All ClickUp tasks are already linked in PR description. Skipping update.");
+      console.log(
+        "All ClickUp tasks are already linked in PR description. Skipping update."
+      );
       return;
     }
 
@@ -42798,14 +42805,62 @@ async function updatePullRequestDescription() {
       body: updatedDescription,
     });
 
-    console.log("Successfully updated PR description with ClickUp Task details.");
+    console.log(
+      "Successfully updated PR description with ClickUp Task details."
+    );
   } catch (error) {
     core.setFailed(`Error updating PR description: ${error.message}`);
   }
 }
 
+async function updateClickupTaskLink() {
+  console.log("Updating ClickUp Task Link");
+
+  const prUrl = `https://github.com/${repo.owner}/${repo.repo}/pull/${prNumber}`;
+
+  // add link to pr for all clickup tasks
+  for (const clickupId of clickupIds) {
+    try {
+      // Add the PR URL as a comment to the ClickUp task
+      const response = await axios.post(
+        `https://api.clickup.com/api/v2/task/${clickupId}/comment`,
+        {
+          comment_text: `🔗 **Related Pull Request**: [PR #${prNumber}: ${prTitle}](${prUrl})`,
+        },
+        {
+          headers: {
+            Authorization: clickupApiKey,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log(
+        `Successfully added PR link comment to ClickUp Task ${clickupId}`
+      );
+      console.log(response.data);
+    } catch (error) {
+      // Check if the error is due to duplicate comment or other issues
+      if (error.response && error.response.status === 400) {
+        console.log(
+          `Could not add PR link comment to ClickUp Task ${clickupId}: ${
+            error.response.data.err || error.message
+          }`
+        );
+      } else {
+        core.setFailed(
+          `Error adding PR link comment to ClickUp Task ${clickupId}: ${error.message}`
+        );
+      }
+    }
+  }
+}
+
 async function run() {
   await updateClickupTaskStatus();
+  if (shouldAddTaskComment === "yes") {
+    await updateClickupTaskLink();
+  }
   if (shouldUpdateDescription === "yes") {
     await updatePullRequestDescription();
   }
