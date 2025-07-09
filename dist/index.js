@@ -42742,7 +42742,7 @@ async function updateClickupTaskStatus() {
       console.log(
         `Successfully updated ClickUp Task ${clickupId} to '${newStatus}'`
       );
-      // console.log(response.data);
+      console.log(response.data);
     } catch (error) {
       core.setFailed(
         `Error updating ClickUp Task ${clickupId}: ${error.message}`
@@ -42825,7 +42825,7 @@ async function updateClickupTaskLink() {
       const response = await axios.post(
         `https://api.clickup.com/api/v2/task/${clickupId}/comment`,
         {
-          comment_text: `🔗 **Related Pull Request**: [PR #${prNumber}: ${prTitle}](${prUrl})`,
+          comment_text: `Github Pull Request: ${prUrl}`,
         },
         {
           headers: {
