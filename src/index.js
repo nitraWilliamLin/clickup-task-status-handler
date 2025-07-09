@@ -10,6 +10,7 @@ const shouldAddTaskComment = core.getInput("should_add_task_comment");
 
 const prTitle = github.context.payload.pull_request.title;
 console.log(`PR Title: ${prTitle}`);
+console.log(`shouldAddTaskComment: ${shouldAddTaskComment}`);
 
 const octokit = github.getOctokit(githubToken);
 const prNumber = github.context.payload.pull_request.number;
@@ -115,6 +116,8 @@ async function updatePullRequestDescription() {
 }
 
 async function updateClickupTaskLink() {
+  console.log("Updating ClickUp Task Link");
+
   const prUrl = `https://github.com/${repo.owner}/${repo.repo}/pull/${prNumber}`;
 
   // add link to pr for all clickup tasks
