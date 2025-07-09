@@ -19,6 +19,10 @@ inputs:
     description: "Whether to update the PR description"
     required: false
     default: "false"
+  should_add_task_comment:
+    description: "Whether to add a comment to the ClickUp task with the PR link"
+    required: false
+    default: "false"
 
 runs:
   using: "node16"
