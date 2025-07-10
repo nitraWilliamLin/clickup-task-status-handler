@@ -42817,28 +42817,45 @@ async function updateClickupTaskLink() {
   console.log("Updating ClickUp Task Link");
 
   const prUrl = `https://github.com/${repo.owner}/${repo.repo}/pull/${prNumber}`;
+  const clickUpHeaders = {
+    Authorization: clickupApiKey,
+    "Content-Type": "application/json",
+  };
 
   // add link to pr for all clickup tasks
   for (const clickupId of clickupIds) {
     try {
+      // Check if the task already has a comment with the PR URL
+      const { data: comments } = await axios.get(
+        `https://api.clickup.com/api/v2/task/${clickupId}/comment`,
+        { headers: clickUpHeaders }
+      );
+
+      if (comments.length > 0) {
+        const comment = comments.find((comment) =>
+          comment.comment_text.includes(prUrl)
+        );
+
+        if (comment) {
+          console.log(
+            `ClickUp Task ${clickupId} already has a comment. Skipping...`
+          );
+          continue;
+        }
+      }
+
       // Add the PR URL as a comment to the ClickUp task
-      const response = await axios.post(
+      await axios.post(
         `https://api.clickup.com/api/v2/task/${clickupId}/comment`,
         {
           comment_text: `Github Pull Request: ${prUrl}`,
         },
-        {
-          headers: {
-            Authorization: clickupApiKey,
-            "Content-Type": "application/json",
-          },
-        }
+        { headers: clickUpHeaders }
       );
 
       console.log(
         `Successfully added PR link comment to ClickUp Task ${clickupId}`
       );
-      console.log(response.data);
     } catch (error) {
       // Check if the error is due to duplicate comment or other issues
       if (error.response && error.response.status === 400) {
