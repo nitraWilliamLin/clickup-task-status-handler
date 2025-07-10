@@ -133,8 +133,6 @@ async function updateClickupTaskLink() {
         { headers: clickUpHeaders }
       );
 
-      console.log(comments);
-
       if (comments.length > 0) {
         const hasCommented = comments.find(({ comment_text }) =>
           comment_text?.includes(prUrl)
