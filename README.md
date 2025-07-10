@@ -20,9 +20,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Use ClickUp Task Updater
-        uses: nitraWilliamLin/clickup-task-status-handler@main  # 替換為你的 GitHub repo
+        uses: nitraWilliamLin/clickup-task-status-handler@main # 替換為你的 GitHub repo
         with:
           github_token: ${{ secrets.REPO_GITHUB_TOKEN }}
           clickup_api_key: ${{ secrets.CLICKUP_API_TOKEN }}
           new_clickup_status: "In Staging"
 ```
+
+### Development
+
+Note: Remember to run `npm run build` or `yarn build` and include built files in the commit. Github Action use `dist/index.js` as the main file.
